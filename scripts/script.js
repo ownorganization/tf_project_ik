@@ -95,6 +95,7 @@ var Helper = {
 		var $tableBody = $("#"+tableID+" tbody");
 		var tableRow = "";
 		var tableRowTemp = "";
+		var tempValueGroupTL = "<div class='group_wrap' value='{0}'><div class='group_name'>{1}</div>{2}</div>";
 
 		$tableBody.html("");
 		$.each(object, function(i, val){
@@ -106,11 +107,17 @@ var Helper = {
 				if(typeof value == 'object') {
 					console.log(value);
 					var tempValue = "";
+					var tempGroupValue = "";
 					$.each(value, function(index, v) {
 						tempValue += "<div value=" + v.id + ">" + v.name + "</div>";
+						if(v.group_name && v.group_id) {
+							tempGroupValue += tempValueGroupTL.format(v.group_id, v.group_name, tempValue);
+							tempValue = "";
+						}
 					});
-					value = tempValue;	
+					value = (tempGroupValue) ? tempGroupValue : tempValue;
 				}
+
 				tableRowTemp += '<td>' + value + '</td>';
 			});
 			tableRow = tableRow.format( tableRowTemp );
@@ -142,8 +149,8 @@ $.fn.updateSelect = function(params, callback, default_callback) {
 
 $.fn.selectWithCheckbox = function(params, callback) {
 	var $select = $(this);
-	var selectOptionTL = "<div value='{0}' class='list_item{2}'>{1}</div>";
-	var selectGroupTL = "<div class='group_list_item{1}'><div class='group_name'>{0}</div>{2}</div>";
+	var selectOptionTL = (params.type == 'select') ? "<option value='{0}'>{1}</option>" : "<div value='{0}' class='list_item{2}'>{1}</div>";
+	var selectGroupTL = (params.type == 'select') ? "<div class='group_list_item{1}'><div class='group_name'>{0}</div><select class='list_select'>{2}</select></div>" : "<div class='group_list_item{1}'><div class='group_name'>{0}</div>{2}</div>";
 	var selectOption = "";
 	var selectGroup = "";
 	var prevGroup = 0;
@@ -229,14 +236,15 @@ function initUpdateSetion() {
 	});
 
 	DB.execMethod({ 
-		method: "selectTableFields",
-		table: "tf_members",
-		fileds: ["id", "member_id"] 
+		method: "selectPersones"
 	}, function(dataObject) {
-		$("#brand_account_manager").updateSelect({
+		$("#brand_persones").selectWithCheckbox({
 			data: dataObject, 
 			text: "member_name", 
-			value: "id" 
+			value: "member_id",
+			group_by: "id",
+			group_name: "role_name",
+			type: "select"
 		}, function(e) {
 			
 		});

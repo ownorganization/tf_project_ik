@@ -39,10 +39,24 @@
 				$query = "SELECT " . (array_key_exists("fields", $request) ? implode(",", $request["fields"]) : "*") . " FROM " . $request["table"];
 				echo json_encode(execQuery($query, $con));
 				break;
+			case "selectPersonesList":
+				$query = "SELECT br_m_r_r.brand_id, tf_m.member_name, tf_m_r.id, tf_m_r.role_name
+						  FROM tf_members AS tf_m
+						  INNER JOIN brand_member_role_rel AS br_m_r_r
+							ON tf_m.id=br_m_r_r.member_id
+						  INNER JOIN tf_member_roles AS tf_m_r
+							ON br_m_r_r.role_id=tf_m_r.id
+						  WHERE br_m_r_r.brand_id=" . $request["brand_id"];
+				echo json_encode(execQuery($query, $con));
+				break;
 			case "selectLangs":
 				$query = "SELECT id,lang_name,brand_id IS NOT NULL AS checked from brand_langs LEFT JOIN brand_lang_rel on brand_id = " . $request["brand_id"] . " AND brand_lang_rel.lang_id = brand_langs.id";
 				echo json_encode(execQuery($query, $con));
 				break;
+			case "selectPersones": 
+				$query = "SELECT tf_m_r.id, tf_m_r.role_name, tf_m.id AS member_id, tf_m.member_name FROM tf_member_roles AS tf_m_r INNER JOIN tf_members AS tf_m ORDER BY tf_m_r.id";
+				echo json_encode(execQuery($query, $con));
+				break;	
 			case "selectFeaturesList":
 				$query = "SELECT bv2.version_order_index IS NOT NULL AS available, bv.version_order_index, bv.version_name, bf.id, bf.feature_name, bf.feature_is_default as checked
 						  FROM brand_versions AS bv 
@@ -70,10 +84,20 @@
 				$brand_features = execQuery($query, $con);
 				$result[0]["features"] = $brand_features;
 
-				$query = "SELECT member_name FROM tf_members where id=(SELECT member_id FROM brand_member_role_rel WHERE brand_id=" . $request["brand_id"] . " and role_id='1' )";
+				/*$query = "SELECT member_name FROM tf_members where id=(SELECT member_id FROM brand_member_role_rel WHERE brand_id=" . $request["brand_id"] . " and role_id='1' )";
 				$brand_account_manager = execQuery($query, $con, true);
 				$brand_account_manager = array_key_exists("member_name", $brand_account_manager) ? $brand_account_manager["member_name"] : "undefined";
-				$result[0]["account_manager"] = $brand_account_manager;
+				$result[0]["account_manager"] = $brand_account_manager;*/
+
+				$query = "SELECT tf_m.id AS id, tf_m.member_name AS name, tf_m_r.id AS group_id, tf_m_r.role_name AS group_name
+						  FROM tf_members AS tf_m
+						  INNER JOIN brand_member_role_rel AS br_m_r_r
+							ON tf_m.id=br_m_r_r.member_id
+						  INNER JOIN tf_member_roles AS tf_m_r
+							ON br_m_r_r.role_id=tf_m_r.id
+						  WHERE br_m_r_r.brand_id=" . $request["brand_id"];
+				$brand_persones = execQuery($query, $con);
+				$result[0]["brand_persones"] = $brand_persones;
 
 				$query = "SELECT id,lang_name AS name FROM brand_langs where id in (SELECT lang_id FROM brand_lang_rel WHERE brand_id=" . $request["brand_id"] . " )";
 				$brand_langs = execQuery($query, $con);

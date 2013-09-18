@@ -20,7 +20,7 @@
 					<td>Brand Type</td>
 					<td>Brand Version</td>
 					<td>Brand Features</td>
-					<td>Account Manager</td>
+					<td>Persones</td>
 					<td>Brand Langs</td>
 				</tr>
 			</thead>
@@ -34,11 +34,12 @@
 				<div class="field">Brand URL</div>
 				<div class="field">Brand Type</div>
 				<div class="field">Brand Version</div>
-				<div class="field with_select">Brand Features</div>
-				<div class="field">Account Manager</div>
-				<div class="field with_select">Brand Langs</div>
+				<div class="field with_custom_list">Brand Features</div>
+				<div class="field with_custom_list">Persones</div>
+				<div class="field with_custom_list">Brand Langs</div>
 			</div>
 			<div class="main">
+				<div>
 				<div class="field">
 					<input type="text" value=""/>
 				</div>
@@ -54,15 +55,16 @@
 				<div class="field">
 					<select id="brand_version" name="brand_version"></select>
 				</div>
-				<div class="field with_select">
+				<div class="field with_custom_list">
 					<div id="brand_features" class="custom_list"></div>
 				</div>
-				<div class="field">
-					<select id="brand_account_manager" name="brand_account_manager"></select>
+				<div class="field with_custom_list">
+					<div id="brand_persones" class="custom_list"></div>
 				</div>
-				<div class="field with_select">
+				<div class="field with_custom_list">
 					<div id="brand_langs" class="custom_list"></div>
 				</div>
+			</div>
 			</div>	
 		</div>
 		<div id="update" class="button">Update</div>

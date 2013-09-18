@@ -21,7 +21,13 @@ table {
 	border-collapse:collapse;
 	
 	td { 
-		padding:0 5px; 
+		padding:0 5px;
+
+		.group_wrap {
+			.group_name {
+				font-weight:bold;
+			}
+		}
 	}
 	
 	thead {
@@ -48,7 +54,7 @@ table {
 	.field {
 		width:7%;
 
-		&.with_select {
+		&.with_custom_list {
 			width:150px;
 		}
 	}
@@ -118,6 +124,10 @@ table {
 			background:#3498DB;
 			color:#fff;
 		}
+	}
+
+	.list_select {
+		margin:5px 0;
 	}
 
 	.group_list_item {
