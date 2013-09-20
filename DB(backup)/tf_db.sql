@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50169
 File Encoding         : 65001
 
-Date: 2013-09-17 10:17:13
+Date: 2013-09-19 18:01:08
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -25,13 +25,13 @@ CREATE TABLE `brands` (
   `brand_url` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `brand_id_key` (`brand_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of brands
 -- ----------------------------
-INSERT INTO `brands` VALUES ('1', '1', 'OptionFair', 'www.optionfair.com');
-INSERT INTO `brands` VALUES ('2', '2', '24option', 'www.24option.com');
+INSERT INTO `brands` VALUES ('1', '2', 'OptionFair', 'www.optionfair.com');
+INSERT INTO `brands` VALUES ('2', '3', '24option', 'www.24option.com');
 
 -- ----------------------------
 -- Table structure for `brand_features`
@@ -75,9 +75,6 @@ CREATE TABLE `brand_feature_rel` (
 -- ----------------------------
 -- Records of brand_feature_rel
 -- ----------------------------
-INSERT INTO `brand_feature_rel` VALUES ('1', '1', '1');
-INSERT INTO `brand_feature_rel` VALUES ('1', '2', '0');
-INSERT INTO `brand_feature_rel` VALUES ('2', '2', '0');
 
 -- ----------------------------
 -- Table structure for `brand_langs`
@@ -115,9 +112,6 @@ CREATE TABLE `brand_lang_rel` (
 -- ----------------------------
 -- Records of brand_lang_rel
 -- ----------------------------
-INSERT INTO `brand_lang_rel` VALUES ('1', '4');
-INSERT INTO `brand_lang_rel` VALUES ('1', '5');
-INSERT INTO `brand_lang_rel` VALUES ('2', '5');
 
 -- ----------------------------
 -- Table structure for `brand_member_role_rel`

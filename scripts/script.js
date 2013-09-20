@@ -126,69 +126,170 @@ var Helper = {
 		});
 	}
 }
-
-$.fn.updateSelect = function(params, callback, default_callback) {
-	var $select = $(this);
-	var selectOption = "<option value='{0}'>{1}</option>";
-	var collectedHtml = params.default_text ? selectOption.format( 0, params.default_text ) : "";
-
-
-	$select.html("");
-	$.each(params.data, function(i, value){
-		collectedHtml += selectOption.format( value[params.value], value[params.text] );
-	});
-	$select.append( collectedHtml );
-
-	$select.change( function(e) {
-		if($(this).val() != 0)
-			callback.apply(this, e);
-		else if(default_callback)
-			default_callback.apply(this, e);
-	});
-}
-
-$.fn.selectWithCheckbox = function(params, callback) {
-	var $select = $(this);
-	var selectOptionTL = (params.type == 'select') ? "<option value='{0}'>{1}</option>" : "<div value='{0}' class='list_item{2}'>{1}</div>";
-	var selectGroupTL = (params.type == 'select') ? "<div class='group_list_item{1}'><div class='group_name'>{0}</div><select class='list_select'>{2}</select></div>" : "<div class='group_list_item{1}'><div class='group_name'>{0}</div>{2}</div>";
-	var selectOption = "";
-	var selectGroup = "";
-	var prevGroup = 0;
-	var collectedHtml = "";
+$(function() {
+	$.fn.updateSelect = function(params, callback, default_callback) {
+		var $select = $(this);
+		var selectOption = "<option value='{0}' {2}>{1}</option>";
+		var collectedHtml = params.default_text ? selectOption.format( 0, params.default_text, "" ) : "";
+		var hasSelected = (params.default_changeable) ? true : false;
 
 
-	$select.html("");
-	$.each(params.data, function(i, value){
-		if( params.group_by && params.group_name ) {
-			if(prevGroup != 0 && prevGroup != value[params.group_by]) {
-				selectGroup = selectGroup.format( "", "", selectOption );
-				collectedHtml += selectGroup;
-				selectOption = "";
-			}
-			selectGroup = selectGroupTL.format( value[params.group_name], (value[params.available] == "1" || !params.available) ? " available": "" );
+		$select.html("");
+		$.each(params.data, function(i, value){
+			collectedHtml += selectOption.format( value[params.value], value[params.text], (value[params.selected] == 1) ? "selected" : "" );
+			if(value[params.selected] == 1)
+				hasSelected = true;
+		});
+		$select.append( collectedHtml );
 
-			prevGroup = value[params.group_by];
-		} else {
-			collectedHtml += selectOptionTL.format( value[params.value], value[params.text], ((value[params.checked] == "1") ? " checked": "") );
+		//init select
+		if(hasSelected) {
+			callback.apply($select);
 		}
-		selectOption += selectOptionTL.format( value[params.value], value[params.text], ((value[params.checked] == "1") ? " checked": "") );
 
-		if(i == params.data.length - 1) {
-			selectGroup = selectGroup.format( "", "", selectOption );
-			collectedHtml += selectGroup;
-		}
-	});
-	$select.append( collectedHtml );
+		//update select
+		$select.change( function(e) {
+			if($(this).val() != 0 || params.default_changeable)
+				callback.apply(this, e);
+			else if(default_callback)
+				default_callback.apply(this, e);
+		});
+	}
+});
 
-	$select.find( ((params.group_by && params.group_name) ? ".available " : "") + ".list_item").on("click", function(){
-		$(this).toggleClass("checked");
-	});
-	$select.change( function(e) {
-		callback.apply(this, e);
-	});
-}
+(function($) {
 
-function initUpdateSetion() {
+    var methods = {
+        init : function(options) {
+        	if(!this.data("initiated")) {
+        		console.log("Initating ", this.attr("id"))
+	            if(options) {
+	                var params = $.extend({
+						text: "", 
+						value: "",
+						type: "",
+						initFunction : function(){}
+					}, options);
+	            }
+
+	            params.selectOptionTL = (params.type == 'select') ? "<option value='{0}'>{1}</option>" : "<div value='{0}' class='list_item{2}'>{1}</div>";
+				params.selectGroupTL = (params.type == 'select') ? "<div class='group_list_item{2}' value='{0}'><div class='group_name'>{1}</div><select class='list_select'><option value='0'>Not Selected</option>{3}</select></div>" : "<div class='group_list_item{2}' value='{0}'><div class='group_name'>{1}</div>{3}</div>";
+	           	
+	           	this.data("data", params.data);
+	           	this.data("work", params);
+	           	this.data("initiated", true);
+
+	           	var _$thisObject = this;
+        		this.data("work").initFunction.call(this, function(ajaxDataObject) {
+
+					if(params.onUpdateFunction) {
+						params.onUpdateFunction.call(_$thisObject, function(updatedObject) {
+							_$thisObject.data("data", updatedObject);
+							methods.generate.apply(_$thisObject);
+						}, ajaxDataObject);
+					} else {
+						_$thisObject.data("data", ajaxDataObject);
+						methods.generate.apply(_$thisObject);
+					}
+					_$thisObject.data("data", ajaxDataObject);
+					methods.generate.apply(_$thisObject);
+
+				}, this.data("initiated"));
+
+        	} else {
+        		var _listData = this.data("data");
+        		var _workData = this.data("work");
+        		var _$thisObject = this;
+
+        		if(_workData.onUpdateFunction) {
+					_workData.onUpdateFunction.call(this, function(updatedObject) {
+						_$thisObject.data("data", updatedObject);
+						methods.generate.apply(_$thisObject);
+					}, _listData);
+				}
+        	}
+        }, 
+        getData: function(values, returnedData) {
+        	var _listData = this.data("data");
+        	returnedData = [];
+
+        	$.each(_listData, function(i, listDataItem) {
+        		returnedData[i] = {};
+        		 $.each(values, function(index, val) {
+        		 	 returnedData[i][val] = listDataItem[val];
+        		 });
+        	});
+
+        	return returnedData;
+        },
+        generate: function() {
+        	var _listData = this.data("data");
+        	var _workData = this.data("work");
+        	//console.log("generate",_listData, this.data("data"), _workData, this.data("work") )
+
+        	var selectOption = "";
+			var selectGroup = "";
+			var prevGroup = 0;
+			var collectedHtml = "";
+        	
+        	this.html("");
+			$.each(_listData, function(i, value){
+				if( _workData.group_by && _workData.group_text ) {
+					if(prevGroup != 0 && prevGroup != value[_workData.group_by]) {
+						selectGroup = selectGroup.format("", "", "", selectOption );
+						collectedHtml += selectGroup;
+						selectOption = "";
+					}
+					selectGroup = _workData.selectGroupTL.format( value[_workData.group_value], value[_workData.group_text], (value[_workData.available] == "1" || !_workData.available) ? " available": "" );
+
+					prevGroup = value[_workData.group_by];
+				} else {
+					collectedHtml += _workData.selectOptionTL.format( value[_workData.value], value[_workData.text], ((value[_workData.checked] == "1") ? " checked": "") );
+				}
+				selectOption += _workData.selectOptionTL.format( value[_workData.value], value[_workData.text], ((value[_workData.checked] == "1") ? " checked": "") );
+
+				if(i == _listData.length - 1) {
+					selectGroup = selectGroup.format("", "", "", selectOption );
+					collectedHtml += selectGroup;
+				}
+			});
+
+			this.append( collectedHtml );
+
+			var _$thisObject = this;
+			this.find( ((_workData.group_by && _workData.group_text) ? ".available " : "") + ".list_item").on("click", function(){
+				$(this).toggleClass("checked");
+
+				var _listData = _$thisObject.data("data");
+				var _workData = _$thisObject.data("work");
+				var checkedValue = $(this).attr("value");
+				var isChecked = $(this).hasClass("checked") ? "1" : "0";
+
+				$.each(_listData, function(i, value) {
+					if(value[_workData.value] == checkedValue) {
+						_listData[i].checked = isChecked;
+					}
+				});
+
+				_$thisObject.data("data", _listData);
+			});
+        }
+    };
+    $.fn.customList = function(method) {
+        var outerArguments = arguments;
+
+        if ( methods[method] ) {
+            return methods[method].apply( $(this), Array.prototype.slice.call( outerArguments, 1 ));
+        } else if ( typeof method === 'object' || ! method ) {
+            return methods.init.apply( $(this), Array.prototype.slice.call( outerArguments, 0 ) );
+        } else {
+            $.error( 'Method ' +  method + ' does not exist on jQuery.plugin' );
+        }  
+    };
+
+}(jQuery));
+
+function initCreateSetion() {
 	DB.execMethod({ 
 		method: "selectTableFields",
 		table: "brand_types",
@@ -206,62 +307,91 @@ function initUpdateSetion() {
 	DB.execMethod({ 
 		method: "selectTableFields",
 		table: "brand_versions",
-		fileds: ["id", "version_name"] 
+		fileds: ["id", "version_name"],
+		order_by: {
+			field: "version_order_index",
+			type: "DESC"
+		} 
 	}, function(dataObject) {
+
+		var initiated = 0;
 		$("#brand_version").updateSelect({
 			data: dataObject, 
 			text: "version_name", 
 			value: "id",
-			default_text: "Select Version" 
+			default_text: "Select Version",
+			default_changeable: true 
 		}, function(e) {
-			DB.execMethod({ 
-				method: "selectFeaturesList",
-				version_id: $(this).val()
-			}, function(dataObject) {
-				$("#brand_features").selectWithCheckbox({
-					data: dataObject, 
-					text: "feature_name", 
-					value: "id",
-					group_by: "version_order_index",
-					group_name: "version_name",
-					checked: "checked",
-					available: "available"
-				}, function(e) {
-					
-				});
+			var $this = $(this);
+
+			$("#brand_features").customList("init", {
+				text: "feature_name", 
+				value: "feature_id",
+				group_by: "version_id",
+				group_value: "version_id",
+				group_text: "version_name",
+				checked: "checked",
+				available: "available",
+				initFunction: function(return_function, initiated) {
+					if(initiated) {
+						DB.execMethod({ 
+							method: "selectFeaturesList"
+						}, function(dataObject) {
+							return_function(dataObject);
+						});
+					}
+				},
+				onUpdateFunction: function(return_function, dataObject) {
+					var selected_version_id = $this.val();
+
+					var available = 0;
+					$.each(dataObject, function(i, value){
+						if(!available && selected_version_id == value.version_id) 
+							available = 1;
+
+						dataObject[i]["available"] = available;
+					});
+
+					return_function(dataObject);
+				}
 			});
+
 		}, function(e) {
 			$("#brand_features").html("");
 		});
 	});
 
-	DB.execMethod({ 
-		method: "selectPersones"
-	}, function(dataObject) {
-		$("#brand_persones").selectWithCheckbox({
-			data: dataObject, 
-			text: "member_name", 
-			value: "member_id",
-			group_by: "id",
-			group_name: "role_name",
-			type: "select"
-		}, function(e) {
-			
-		});
-	});
+	$("#brand_persones").customList("init", {
+		text: "member_name", 
+		value: "member_id",
+		group_by: "id",
+		group_text: "role_name",
+		type: "select",
+		initFunction: function(return_function, initiated) {
+			if(initiated) {
+				DB.execMethod({ 
+					method: "selectPersones"
+				}, function(dataObject) {
+					return_function(dataObject);
+				});
+			}
+		}
+	})
 
-	DB.execMethod({ 
-		method: "selectTableFields",
-		table: "brand_langs",
-		fileds: ["id", "lang_name", "lang_code"] 
-	}, function(dataObject) {
-		$("#brand_langs").selectWithCheckbox({
-			data: dataObject, 
-			text: "lang_name", 
-			value: "id" 
-		}, function(e) {
-			
-		});
+	$("#brand_langs").customList("init", { 
+		text: "lang_name", 
+		value: "id", 
+		initFunction: function(return_function, initiated) {
+			if(initiated) {
+				DB.execMethod({ 
+					method: "selectTableFields",
+					table: "brand_langs",
+					fileds: ["id", "lang_name", "lang_code"] 
+				}, function(dataObject) {
+					return_function(dataObject);
+				});
+			}
+		}
 	});
 
 	$("#update").on("click", function() {
@@ -274,9 +404,19 @@ function initUpdateSetion() {
 			Helper.updateTable("brands", dataObject);
 		});
 	});
+
+	$("#add_new").on("click", function() {
+		//alert("Add New");
+		//Collect all data for new brand
+
+		var features = $("#brand_features").customList("getData", ["feature_id", "checked"]);
+
+		DEV.output(features);
+	});
 }
 
 $(function() {
+
 	DB.execMethod({ 
 		method: "selectTableFields", 
 		table: "brands", 
@@ -300,17 +440,7 @@ $(function() {
 		});
 	});
 
-	DB.exec("SELECT * FROM brands", function(dataObject) {
-		Helper.updateTable("brands", dataObject);
-	});
-
-	$("#add_new").on("click", function() {
-		alert("Add New");
-		console.log("select id,lang_name,brand_id IS NOT NULL AS checked from brand_langs LEFT JOIN brand_lang_rel on brand_id = 1 and brand_lang_rel.lang_id = brand_langs.id");
-		console.log("SELECT distinct bv2.version_order_index is not null as available, bv.version_order_index, bv.version_name, bf.feature_name, bf.feature_is_default FROM brand_versions AS bv inner JOIN brand_features AS bf ON bv.id=bf.version_id left JOIN brand_versions AS bv2 ON bv2.version_order_index<=(SELECT version_order_index FROM brand_versions WHERE id=3) and bv2.id=bf.version_id ORDER BY bv.version_order_index DESC");
-	});
-
-	initUpdateSetion();
+	initCreateSetion();
 
 	$("#sql_test").on("click", function(){
 		var query = $("#sql_test_query").val();

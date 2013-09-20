@@ -158,3 +158,73 @@ WHERE br_m_r_r.brand_id=2;
 SELECT id,lang_name AS name FROM brand_langs where id in (SELECT lang_id FROM brand_lang_rel WHERE brand_id=1); /*Посмотреть ещё*/
 
 SELECT id,feature_name AS name FROM brand_features where id in (SELECT feature_id FROM brand_feature_rel WHERE brand_id=1 and feature_is_checked=1); /*Посмотреть ещё*/
+
+/*ВАЖНО!!!!*/
+SET autocommit=0;
+
+INSERT INTO brands
+    (brand_id, brand_name, brand_url)
+VALUES
+    (100, 'Insert Brand name', 'url');
+  
+INSERT INTO brand_type_rel
+    (brand_id, type_id) 
+SELECT id, 2
+FROM brands
+WHERE brand_id=100;
+
+commit;
+SET autocommit=1;
+
+/*Запиь с переменной!!!!*/
+SET autocommit=0;
+
+INSERT INTO brands
+    (brand_id, brand_name, brand_url)
+VALUES
+    (240, 'Insert Brand name', 'url');
+
+SELECT @id_brand_var:=id FROM brands WHERE brand_id = 240;
+
+INSERT INTO brand_type_rel
+    (brand_id, type_id) 
+VALUES
+    (@id_brand_var, 2);
+
+commit;
+SET autocommit=1;
+
+
+/*ЗАПИСЬ ДАННЫХ В БД НОВЫЙ БРЕНД*/
+SET autocommit=0;
+
+INSERT INTO brands
+    (brand_id, brand_name, brand_url)
+VALUES
+    (240, 'Insert Brand name', 'url');
+
+SELECT @id_brand_var:=id FROM brands WHERE brand_id = 240;
+
+INSERT INTO brand_type_rel
+    (brand_id, type_id) 
+VALUES
+    (@id_brand_var, 2);
+    
+INSERT INTO brand_version_rel
+    (brand_id, version_id) 
+VALUES
+    (@id_brand_var, 7);
+
+commit;
+SET autocommit=1;
+
+/*new*/
+SET autocommit=0;
+INSERT INTO brand_feature_rel
+    (brand_id, feature_id, feature_is_checked)
+    VALUES(2, 1,1),(2, 2,0),(2, 9,1);
+INSERT INTO brand_lang_rel
+    (brand_id, lang_id)
+    VALUES(2, 4),(2, 5);
+commit;
+SET autocommit=1;

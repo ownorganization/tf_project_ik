@@ -39,7 +39,6 @@
 				<div class="field with_custom_list">Brand Langs</div>
 			</div>
 			<div class="main">
-				<div>
 				<div class="field">
 					<input type="text" value=""/>
 				</div>
@@ -64,12 +63,13 @@
 				<div class="field with_custom_list">
 					<div id="brand_langs" class="custom_list"></div>
 				</div>
-			</div>
 			</div>	
 		</div>
 		<div id="update" class="button">Update</div>
 		<div id="add_new" class="button">Add New Brand</div>
 		<div class="develop">
+			<div id="test1" class="custom_list"></div>
+			<div id="test2" class="custom_list"></div>
 			<textarea name="sql" id="sql_test_query" cols="30" rows="10" style="width:400px;"></textarea>
 			<div id="sql_test" class="button">SQL Execute</div>
 			<div id="sql_result"></div>

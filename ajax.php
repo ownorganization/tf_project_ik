@@ -36,7 +36,7 @@
 	} else {
 		switch($request["method"]) {
 			case "selectTableFields":
-				$query = "SELECT " . (array_key_exists("fields", $request) ? implode(",", $request["fields"]) : "*") . " FROM " . $request["table"];
+				$query = "SELECT " . (array_key_exists("fields", $request) ? implode(",", $request["fields"]) : "*") . " FROM " . $request["table"] . ((!empty($request["order_by"]) ? " ORDER BY " . $request["order_by"]["field"] . " " . $request["order_by"]["type"] : ""));
 				echo json_encode(execQuery($query, $con));
 				break;
 			case "selectPersonesList":
@@ -58,12 +58,10 @@
 				echo json_encode(execQuery($query, $con));
 				break;	
 			case "selectFeaturesList":
-				$query = "SELECT bv2.version_order_index IS NOT NULL AS available, bv.version_order_index, bv.version_name, bf.id, bf.feature_name, bf.feature_is_default as checked
-						  FROM brand_versions AS bv 
-						  INNER JOIN brand_features AS bf 
-						  ON bv.id=bf.version_id 
-						  LEFT JOIN brand_versions AS bv2 
-						  ON bv2.version_order_index<=(SELECT version_order_index FROM brand_versions WHERE id=" . $request["version_id"] . ") AND bv2.id=bf.version_id ORDER BY bv.version_order_index DESC";
+				$query = "SELECT bf.id as feature_id, bf.version_id, version_name, feature_name, feature_is_default as checked
+						  FROM brand_versions AS bv
+						  INNER JOIN brand_features AS bf
+    					  ON bv.id=bf.version_id ORDER BY version_order_index DESC";
 				echo json_encode(execQuery($query, $con));
 				break;	
 			case "selectBrandInfo":
